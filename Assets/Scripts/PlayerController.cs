@@ -23,6 +23,8 @@ public class PlayerController : MonoBehaviour
  // UI object to display winning text.
  public GameObject winTextObject;
 
+ private AudioSource pickupNoise;
+
  // Start is called before the first frame update.
  void Start()
     {
@@ -37,6 +39,7 @@ public class PlayerController : MonoBehaviour
 
  // Initially set the win text to be inactive.
         winTextObject.SetActive(false);
+       pickupNoise = GetComponents<AudioSource>()[0];
     }
  
  // This function is called when a move input is detected.
@@ -66,6 +69,7 @@ public class PlayerController : MonoBehaviour
  // Check if the object the player collided with has the "PickUp" tag.
  if (other.gameObject.CompareTag("PickUp")) 
         {
+              pickupNoise.Play();
  // Deactivate the collided object (making it disappear).
             other.gameObject.SetActive(false);
 
@@ -98,6 +102,7 @@ private void OnCollisionEnter(Collision collision)
 {
  if (collision.gameObject.CompareTag("Enemy"))
     {
+       collision.gameObject.GetComponent<AudioSource>().Play();
  // Destroy the current object
         Destroy(gameObject); 
  

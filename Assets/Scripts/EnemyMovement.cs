@@ -8,7 +8,6 @@ public class EnemyMovement : MonoBehaviour
 
  // Reference to the NavMeshAgent component for pathfinding.
  private NavMeshAgent navMeshAgent;
-
  // Start is called before the first frame update.
  void Start()
     {
