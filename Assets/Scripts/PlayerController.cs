@@ -24,7 +24,9 @@ public class PlayerController : MonoBehaviour
  public GameObject winTextObject;
 
  private AudioSource pickupNoise;
-
+ public GameObject explosionFX;
+ public GameObject pickupFX;
+ 
  // Start is called before the first frame update.
  void Start()
     {
@@ -69,6 +71,9 @@ public class PlayerController : MonoBehaviour
  // Check if the object the player collided with has the "PickUp" tag.
  if (other.gameObject.CompareTag("PickUp")) 
         {
+              var currentPickupFX = Instantiate(pickupFX, other.transform.position, Quaternion.identity);
+              Destroy(currentPickupFX, 3);
+
               pickupNoise.Play();
  // Deactivate the collided object (making it disappear).
             other.gameObject.SetActive(false);
@@ -102,6 +107,8 @@ private void OnCollisionEnter(Collision collision)
 {
  if (collision.gameObject.CompareTag("Enemy"))
     {
+       Instantiate(explosionFX, transform.position, Quaternion.identity);
+
        collision.gameObject.GetComponent<AudioSource>().Play();
  // Destroy the current object
         Destroy(gameObject); 
