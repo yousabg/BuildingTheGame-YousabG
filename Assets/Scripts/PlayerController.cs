@@ -110,12 +110,16 @@ private void OnCollisionEnter(Collision collision)
        Instantiate(explosionFX, transform.position, Quaternion.identity);
 
        collision.gameObject.GetComponent<AudioSource>().Play();
+       Debug.Log(collision.gameObject.GetComponentInChildren<Animator>());
+       collision.gameObject.GetComponentInChildren<Animator>().SetFloat("speed_f", 0);
+
  // Destroy the current object
         Destroy(gameObject); 
  
  // Update the winText to display "You Lose!"
         winTextObject.gameObject.SetActive(true);
         winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
+
  
     }
 
