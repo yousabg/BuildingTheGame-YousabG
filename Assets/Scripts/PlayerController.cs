@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEngine.AI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -26,6 +27,7 @@ public class PlayerController : MonoBehaviour
  private AudioSource pickupNoise;
  public GameObject explosionFX;
  public GameObject pickupFX;
+ private bool gameWon = false;
  
  // Start is called before the first frame update.
  void Start()
@@ -99,18 +101,24 @@ public class PlayerController : MonoBehaviour
             winTextObject.SetActive(true);
 
  // Destroy the enemy GameObject.
-            Destroy(GameObject.FindGameObjectWithTag("Enemy"));
+            // Destroy(GameObject.FindGameObjectWithTag("Enemy"));
+            GameObject enemy = GameObject.Find("Enemy");
+            NavMeshAgent enemyNavMeshAgent = enemy.GetComponent<NavMeshAgent>();
+            enemyNavMeshAgent.speed = 0;
+            Animator anim = enemy.GetComponentInChildren<Animator>();
+            anim.SetFloat("speed_f", 0);
+
+            gameWon = true;
         }
     }
 
 private void OnCollisionEnter(Collision collision)
 {
- if (collision.gameObject.CompareTag("Enemy"))
+ if (collision.gameObject.CompareTag("Enemy") && gameWon == false)
     {
        Instantiate(explosionFX, transform.position, Quaternion.identity);
 
        collision.gameObject.GetComponent<AudioSource>().Play();
-       Debug.Log(collision.gameObject.GetComponentInChildren<Animator>());
        collision.gameObject.GetComponentInChildren<Animator>().SetFloat("speed_f", 0);
 
  // Destroy the current object
