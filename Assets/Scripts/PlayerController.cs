@@ -132,19 +132,27 @@ public class PlayerController : MonoBehaviour
               // Check if the count has reached or exceeded the win condition.
               if (count >= 12)
               {
-                     // Display the win text.
                      winTextObject.SetActive(true);
 
-                     // Destroy the enemy GameObject.
-                     // Destroy(GameObject.FindGameObjectWithTag("Enemy"));
-                     GameObject enemy = GameObject.Find("Enemy");
-                     NavMeshAgent enemyNavMeshAgent = enemy.GetComponent<NavMeshAgent>();
-                     enemyNavMeshAgent.speed = 0;
-                     Animator anim = enemy.GetComponentInChildren<Animator>();
-                     anim.SetFloat("speed_f", 0);
+                     GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+                     foreach (GameObject enemy in enemies)
+                     {
+                            NavMeshAgent enemyNavMeshAgent = enemy.GetComponent<NavMeshAgent>();
+                            if (enemyNavMeshAgent != null)
+                            {
+                                   enemyNavMeshAgent.speed = 0;
+                            }
+
+                            Animator anim = enemy.GetComponentInChildren<Animator>();
+                            if (anim != null)
+                            {
+                                   anim.SetFloat("speed_f", 0);
+                            }
+                     }
 
                      gameWon = true;
               }
+
        }
 
        private void OnCollisionEnter(Collision collision)
