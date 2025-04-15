@@ -21,31 +21,75 @@ public class PlayerController : MonoBehaviour
 
        // UI text component to display count of "PickUp" objects collected.
        public TextMeshProUGUI countText;
-
+       public GameObject countObject;
        // UI object to display winning text.
-       public GameObject winTextObject;
+       public TextMeshProUGUI winTextObject;
 
        private AudioSource pickupNoise;
        public GameObject explosionFX;
        public GameObject pickupFX;
-       private bool gameWon = false;
        private Vector3 targetPos;
        [SerializeField] private bool isMoving = false;
+       public GameObject canvas;
+       public Vector2 respawnX;
+       public Vector2 respawnY;
+       private GameObject[] allPickups;
        // Start is called before the first frame update.
        void Start()
        {
               // Get and store the Rigidbody component attached to the player.
               rb = GetComponent<Rigidbody>();
 
-              // Initialize count to zero.
-              count = 0;
+              // Initially set the win text to be inactive.
+              pickupNoise = GetComponents<AudioSource>()[0];
+              allPickups = GameObject.FindGameObjectsWithTag("PickUp");
 
-              // Update the count display.
+       }
+
+       public void Restart()
+       {
+              // Reset the player's pickup count
+              count = 0;
               SetCountText();
 
-              // Initially set the win text to be inactive.
-              winTextObject.SetActive(false);
-              pickupNoise = GetComponents<AudioSource>()[0];
+              // Reactivate player and set to a new random position
+              gameObject.SetActive(true);
+              float randomX = Random.Range(respawnX.x, respawnX.y);
+              float randomZ = Random.Range(respawnY.x, respawnY.y);
+              transform.position = new Vector3(randomX, transform.position.y, randomZ);
+              if (rb != null)
+              {
+                     rb.linearVelocity = Vector3.zero;
+
+              }
+
+              // Hide win/lose canvas and text
+              canvas.SetActive(false);
+              countObject.SetActive(true);
+              winTextObject.text = "";
+
+              // Reactivate all pickups
+              if (allPickups != null)
+              {
+                     foreach (GameObject pickup in allPickups)
+                     {
+                            if (pickup != null)
+                                   pickup.SetActive(true);
+                     }
+              }
+
+              // Reactivate all enemies
+              GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+              foreach (GameObject enemy in enemies)
+              {
+                     enemy.SetActive(true);
+                     Animator anim = enemy.GetComponentInChildren<Animator>();
+                     if (anim != null)
+                     {
+                            anim.SetFloat("speed_f", 1); // Resume animation if used
+                     }
+              }
+
        }
 
        private void Update()
@@ -85,10 +129,18 @@ public class PlayerController : MonoBehaviour
        private void FixedUpdate()
        {
               // Create a 3D movement vector using the X and Y inputs.
-              Vector3 movement = new Vector3(movementX, 0.0f, movementY);
+              // Get the camera's forward and right directions (flattened on Y)
+              Vector3 cameraForward = Camera.main.transform.forward;
+              cameraForward.y = 0f;
+              cameraForward.Normalize();
 
-              // Apply force to the Rigidbody to move the player.
-              rb.AddForce(movement * speed);
+              Vector3 cameraRight = Camera.main.transform.right;
+              cameraRight.y = 0f;
+              cameraRight.Normalize();
+
+              // Create movement direction relative to camera
+              Vector3 moveDir = cameraRight * movementX + cameraForward * movementY;
+              rb.AddForce(moveDir.normalized * speed);
               if (isMoving)
               {
                      // Move the player towards the target position
@@ -132,44 +184,34 @@ public class PlayerController : MonoBehaviour
               // Check if the count has reached or exceeded the win condition.
               if (count >= 12)
               {
-                     winTextObject.SetActive(true);
 
                      GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
                      foreach (GameObject enemy in enemies)
                      {
-                            NavMeshAgent enemyNavMeshAgent = enemy.GetComponent<NavMeshAgent>();
-                            if (enemyNavMeshAgent != null)
-                            {
-                                   enemyNavMeshAgent.speed = 0;
-                            }
-
-                            Animator anim = enemy.GetComponentInChildren<Animator>();
-                            if (anim != null)
-                            {
-                                   anim.SetFloat("speed_f", 0);
-                            }
+                            enemy.SetActive(false);
                      }
-
-                     gameWon = true;
+                     winTextObject.SetText("You win!");
+                     canvas.SetActive(true);
+                     countObject.SetActive(false);
               }
 
        }
 
        private void OnCollisionEnter(Collision collision)
        {
-              if (collision.gameObject.CompareTag("Enemy") && gameWon == false)
+              if (collision.gameObject.transform.parent != null && collision.gameObject.transform.parent.CompareTag("Enemy"))
               {
                      Instantiate(explosionFX, transform.position, Quaternion.identity);
 
                      collision.gameObject.GetComponent<AudioSource>().Play();
-                     collision.gameObject.GetComponentInChildren<Animator>().SetFloat("speed_f", 0);
 
                      // Destroy the current object
-                     Destroy(gameObject);
+                     gameObject.SetActive(false);
 
                      // Update the winText to display "You Lose!"
-                     winTextObject.gameObject.SetActive(true);
-                     winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
+                     canvas.SetActive(true);
+                     countObject.SetActive(false);
+                     winTextObject.SetText("You lose!");
 
 
               }
